@@ -1,28 +1,25 @@
-pipeline{
-  agent any
-  stages{
-    stage("Git Checkout"){
-      steps{
-            git credentialsId: 'git_hub', url: 'https://github.com/sruthipariti/deploy-tomact'
-           }
-          }
-     stage("Maven Build"){
-       steps{
-            sh "mvn clean package"
-            sh "mv target/*.war target/myweb.war"
-             }
+pipeline {
+    agent any
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'master', url: 'https://github.com/sruthipariti/deploy-tomact
             }
-     stage("deploy-dev"){
-       steps{
-          sshagent(['tomcat-dev1']) {
-          sh """
-          scp -o StrictHostKeyChecking=no target/myweb.war  
-          ubuntu@yourip:/opt/tomcat/webapps/
-          ssh ubuntu@yourip /opt/tomcat/bin/shutdown.sh
-          ssh ubuntu@yourip /opt/tomcat/bin/startup.sh
-           """
-            }
-          }
         }
-      }
+        
+        stage('Build') {
+            steps {
+                bat '"C:\\Program Files\\apache-maven-3.8.3\\bin\\mvn" clean package'
+            }
+        }
+        
+        stage('Deploy') {
+            steps {
+                bat 'xcopy /y /s target\\your-web-app.war C:\\apache-tomcat-9.0.53\\webapps'
+                bat 'net stop Tomcat9'
+                bat 'net start Tomcat9'
+            }
+        }
     }
+}
